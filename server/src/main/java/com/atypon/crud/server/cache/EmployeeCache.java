@@ -18,7 +18,7 @@ public class EmployeeCache implements ICache<Employee> {
 
   private static final int MAX_SIZE = 1000;
 
-  private static EmployeeCache INSTANCE;
+  private static volatile EmployeeCache INSTANCE;
 
   private final Map<Long, Cacheable<Employee>> map;
 
@@ -32,7 +32,11 @@ public class EmployeeCache implements ICache<Employee> {
   }
 
   public static EmployeeCache getInstance() {
-    if (INSTANCE == null) INSTANCE = new EmployeeCache();
+    if (INSTANCE == null) {
+      synchronized (EmployeeCache.class) {
+        if (INSTANCE == null) INSTANCE = new EmployeeCache();
+      }
+    }
     return INSTANCE;
   }
 

@@ -1,5 +1,6 @@
 package com.atypon.crud.server.connectionpool;
 
+import com.atypon.crud.server.cache.EmployeeCache;
 import com.atypon.crud.server.exception.ConnectionOverflowException;
 
 import java.sql.Connection;
@@ -17,7 +18,7 @@ public class BasicConnectionPool implements ConnectionPool {
 
   private final int MAX_POOL_SIZE = 40;
 
-  private static BasicConnectionPool INSTANCE;
+  private static volatile BasicConnectionPool INSTANCE;
 
   // Uses BlockingQueue to avoid concurrency issues if multi-threading is used.
   private final Queue<Connection> connectionPool;
@@ -34,7 +35,11 @@ public class BasicConnectionPool implements ConnectionPool {
   }
 
   public static BasicConnectionPool getInstance() throws SQLException {
-    if (INSTANCE == null) INSTANCE = new BasicConnectionPool();
+    if (INSTANCE == null) {
+      synchronized (EmployeeCache.class) {
+        if (INSTANCE == null) INSTANCE = new BasicConnectionPool();
+      }
+    }
     return INSTANCE;
   }
 
